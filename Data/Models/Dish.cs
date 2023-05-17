@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace SEHW.Models;
+namespace Data.Models;
 
 public class Dish
 {

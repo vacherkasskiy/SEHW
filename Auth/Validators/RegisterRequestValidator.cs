@@ -1,8 +1,8 @@
-﻿using Data;
+﻿using Auth.Requests.Account;
+using Data;
 using FluentValidation;
-using SEHW.Requests.Account;
 
-namespace SEHW.Validators;
+namespace Auth.Validators;
 
 public class RegisterRequestValidator : AbstractValidator<RegisterRequest>
 {

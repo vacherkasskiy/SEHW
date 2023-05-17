@@ -1,5 +1,6 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
+using Auth.Requests.Account;
 using Data;
 using Data.Data;
 using Data.Models;
@@ -7,9 +8,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using SEHW.Requests.Account;
 
-namespace SEHW.Controllers;
+namespace Auth.Controllers;
 
 [ApiController]
 [Route("[controller]")]

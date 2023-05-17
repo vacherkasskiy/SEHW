@@ -22,7 +22,7 @@ namespace SEHW.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("SEHW.Models.Dish", b =>
+            modelBuilder.Entity("Auth.Models.Dish", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -58,7 +58,7 @@ namespace SEHW.Migrations
                     b.ToTable("Dishes");
                 });
 
-            modelBuilder.Entity("SEHW.Models.Order", b =>
+            modelBuilder.Entity("Auth.Models.Order", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -90,7 +90,7 @@ namespace SEHW.Migrations
                     b.ToTable("Orders");
                 });
 
-            modelBuilder.Entity("SEHW.Models.OrderDish", b =>
+            modelBuilder.Entity("Auth.Models.OrderDish", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -119,7 +119,7 @@ namespace SEHW.Migrations
                     b.ToTable("OrderDishes");
                 });
 
-            modelBuilder.Entity("SEHW.Models.Session", b =>
+            modelBuilder.Entity("Auth.Models.Session", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -145,7 +145,7 @@ namespace SEHW.Migrations
                     b.ToTable("Sessions");
                 });
 
-            modelBuilder.Entity("SEHW.Models.User", b =>
+            modelBuilder.Entity("Auth.Models.User", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -184,9 +184,9 @@ namespace SEHW.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("SEHW.Models.Order", b =>
+            modelBuilder.Entity("Auth.Models.Order", b =>
                 {
-                    b.HasOne("SEHW.Models.User", "User")
+                    b.HasOne("Auth.Models.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -195,15 +195,15 @@ namespace SEHW.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("SEHW.Models.OrderDish", b =>
+            modelBuilder.Entity("Auth.Models.OrderDish", b =>
                 {
-                    b.HasOne("SEHW.Models.Dish", "Dish")
+                    b.HasOne("Auth.Models.Dish", "Dish")
                         .WithMany()
                         .HasForeignKey("DishId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("SEHW.Models.Order", "Order")
+                    b.HasOne("Auth.Models.Order", "Order")
                         .WithMany()
                         .HasForeignKey("OrderId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -214,9 +214,9 @@ namespace SEHW.Migrations
                     b.Navigation("Order");
                 });
 
-            modelBuilder.Entity("SEHW.Models.Session", b =>
+            modelBuilder.Entity("Auth.Models.Session", b =>
                 {
-                    b.HasOne("SEHW.Models.User", "User")
+                    b.HasOne("Auth.Models.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)

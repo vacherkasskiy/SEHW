@@ -8,12 +8,17 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="FluentValidation.AspNetCore" Version="11.3.0" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.1">
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="6.0.1" />
         <PackageReference Include="Swashbuckle.AspNetCore" Version="6.0.1" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Responses\Account" />
     </ItemGroup>
 
 </Project>

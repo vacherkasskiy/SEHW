@@ -14,7 +14,7 @@ public class User
 
     [Required] [MaxLength(10)] public string Role { get; set; }
 
-    [Required] public DateTime CreatedAt { get; set; } = DateTime.Now;
+    [Required] public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-    [Required] public DateTime UpdatedAt { get; set; } = DateTime.Now;
+    [Required] public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }

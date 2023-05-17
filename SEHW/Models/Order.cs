@@ -14,6 +14,6 @@ public class Order
     [Required] [MaxLength(50)] public string Status { get; set; }
 
     public string? SpecialRequests { get; set; }
-    public DateTime CreatedAt { get; set; } = DateTime.Now;
-    public DateTime UpdatedAt { get; set; } = DateTime.Now;
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }

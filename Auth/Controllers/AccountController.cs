@@ -1,4 +1,5 @@
 using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Text;
 using Auth.Requests.Account;
 using Data;
@@ -22,7 +23,7 @@ public class AccountController : ControllerBase
         _db = db;
     }
     
-    private string Generate(User user)
+    private static string Generate(User user)
     {
         var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(JwtConfig.Key));
         var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
@@ -30,6 +31,7 @@ public class AccountController : ControllerBase
         var token = new JwtSecurityToken(
             JwtConfig.Issuer,
             JwtConfig.Audience,
+            claims: new[] { new Claim("userId", user.Id.ToString()) },
             signingCredentials: credentials);
 
         return new JwtSecurityTokenHandler().WriteToken(token);
@@ -62,31 +64,41 @@ public class AccountController : ControllerBase
         await _db.Users.AddAsync(user);
         await _db.SaveChangesAsync();
 
-        return StatusCode(StatusCodes.Status200OK, $"User registered successfully");
+        return StatusCode(StatusCodes.Status200OK, "User registered successfully");
     }
     
     [HttpPost]
     [Route("/account/login")]
-    public async Task<IActionResult> Login(LoginRequest request)
+    public async Task<IActionResult> Login([FromForm]LoginRequest request)
     {
         var user = _db.Users.FirstOrDefault(x => x.Email == request.Email);
 
         if (user == null)
         {
-            return StatusCode(StatusCodes.Status400BadRequest, "User with such email already exists");
+            return StatusCode(StatusCodes.Status400BadRequest, "User with such email does not exist");
+        }
+        
+        var passwordHasher = new PasswordHasher<User>();
+        var result = passwordHasher.VerifyHashedPassword(user, user.PasswordHash, request.Password);
+
+        if (result != PasswordVerificationResult.Success)
+        {
+            return StatusCode(StatusCodes.Status400BadRequest, "Wrong password");
         }
         
         var token = Generate(user);
+        var signature = token.Split('.')[2];
+        
         var session = new Session
         {
             UserId = user.Id,
-            SessionToken = token,
+            SessionToken = signature,
             ExpiresAt = DateTime.UtcNow.AddMinutes(5)
         };
         
         await _db.Sessions.AddAsync(session);
         await _db.SaveChangesAsync();
         
-        return StatusCode(StatusCodes.Status200OK, $"{session.User.Username}");
+        return StatusCode(StatusCodes.Status200OK, $"You authenticated successfully\nYour signature: {signature}");
     }
 }

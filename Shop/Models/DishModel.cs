@@ -1,6 +1,3 @@
 ﻿namespace Shop.Models;
 
-public class DishModel
-{
-    
-}
+public record DishModel(int DishId, int Quantity);

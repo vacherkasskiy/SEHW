@@ -1,3 +1,5 @@
-﻿namespace Shop.Requests;
+﻿using Shop.Models;
 
-public record CreateOrderRequest();
+namespace Shop.Requests;
+
+public record CreateOrderRequest(string Signature, DishModel[] Dishes);

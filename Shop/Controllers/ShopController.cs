@@ -1,5 +1,8 @@
 using Data.Data;
+using Data.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Shop.Requests;
 
 namespace Shop.Controllers;
 
@@ -13,10 +16,60 @@ public class ShopController : ControllerBase
     {
         _db = db;
     }
-    
-    [HttpGet(Name = "GetWeatherForecast")]
-    public string Get()
+
+    [HttpGet]
+    [Route("/shop/get_dishes")]
+    public IEnumerable<Dish> GetDishes()
     {
-        return _db.Users.Find(3)!.Email;
+        var dishes = _db.Dishes.ToArray();
+        return dishes;
+    }
+
+    [HttpPost]
+    [Route("/shop/create_order")]
+    public async Task<IActionResult> CreateOrder(CreateOrderRequest request)
+    {
+        if (await _db
+                .Sessions
+                .FirstOrDefaultAsync(x => x.SessionToken == request.Signature && x.ExpiresAt > DateTime.UtcNow)
+            == null)
+        {
+            return StatusCode(StatusCodes.Status400BadRequest, "Wrong signature");
+        }
+
+        if (request.Dishes.Any(x => _db.Dishes.Find(x.DishId) == null))
+        {
+            return StatusCode(StatusCodes.Status400BadRequest, "Wrong dish id(-s)");
+        }
+
+        var userId = (await _db.Sessions.FirstAsync(x => x.SessionToken == request.Signature)).UserId;
+        var order = new Order
+        {
+            UserId = userId,
+            Status = "Not ready",
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+
+        await _db.Orders.AddAsync(order);
+        await _db.SaveChangesAsync();
+        var orderId = order.Id;
+        
+        foreach (var dish in request.Dishes)
+        {
+            var orderDish = new OrderDish
+            {
+                OrderId = orderId,
+                DishId = dish.DishId,
+                Quantity = dish.Quantity,
+                Price = (await _db.Dishes.FindAsync(dish.DishId))!.Price
+            };
+
+            await _db.OrderDishes.AddAsync(orderDish);
+        }
+
+        await _db.SaveChangesAsync();
+
+        return StatusCode(StatusCodes.Status200OK, "Order successfully created");
     }
 }

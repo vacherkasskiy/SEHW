@@ -88,15 +88,25 @@ public class AccountController : ControllerBase
         
         var token = Generate(user);
         var signature = token.Split('.')[2];
-        
-        var session = new Session
+
+        if (_db.Sessions.FirstOrDefault(x => x.SessionToken == signature) == null)
         {
-            UserId = user.Id,
-            SessionToken = signature,
-            ExpiresAt = DateTime.UtcNow.AddMinutes(5)
-        };
+            var session = new Session
+            {
+                UserId = user.Id,
+                SessionToken = signature,
+                ExpiresAt = DateTime.UtcNow.AddMinutes(5)
+            };
         
-        await _db.Sessions.AddAsync(session);
+            await _db.Sessions.AddAsync(session);
+        }
+        else
+        {
+            var session = _db.Sessions.FirstOrDefault(x => x.SessionToken == signature)!;
+            session.ExpiresAt = DateTime.UtcNow.AddMinutes(5);
+            _db.Sessions.Update(session);
+        }
+        
         await _db.SaveChangesAsync();
         
         return StatusCode(StatusCodes.Status200OK, $"You authenticated successfully\nYour signature: {signature}");

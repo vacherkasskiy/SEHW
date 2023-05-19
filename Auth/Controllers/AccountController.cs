@@ -95,7 +95,7 @@ public class AccountController : ControllerBase
             {
                 UserId = user.Id,
                 SessionToken = signature,
-                ExpiresAt = DateTime.UtcNow.AddMinutes(5)
+                ExpiresAt = DateTime.UtcNow.AddMinutes(JwtConfig.SessionDuration)
             };
         
             await _db.Sessions.AddAsync(session);
@@ -103,7 +103,7 @@ public class AccountController : ControllerBase
         else
         {
             var session = _db.Sessions.FirstOrDefault(x => x.SessionToken == signature)!;
-            session.ExpiresAt = DateTime.UtcNow.AddMinutes(5);
+            session.ExpiresAt = DateTime.UtcNow.AddMinutes(JwtConfig.SessionDuration);
             _db.Sessions.Update(session);
         }
         

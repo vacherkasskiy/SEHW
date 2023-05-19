@@ -2,5 +2,5 @@
 
 public static class RoleTypes
 {
-    public static readonly string[] Roles = new []{"customer", "chef", "manager"};
+    public static readonly string[] Roles = {"customer", "chef", "manager"};
 }

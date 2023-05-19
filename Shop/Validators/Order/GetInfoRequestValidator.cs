@@ -1,7 +1,7 @@
 ﻿using FluentValidation;
 using Shop.Requests;
 
-namespace Shop.Validators;
+namespace Shop.Validators.Order;
 
 public class GetInfoRequestValidator : AbstractValidator<GetInfoRequest>
 {

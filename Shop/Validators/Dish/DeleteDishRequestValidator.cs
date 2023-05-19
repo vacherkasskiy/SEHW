@@ -1,8 +1,7 @@
-﻿using System.Data;
-using FluentValidation;
+﻿using FluentValidation;
 using Shop.Requests.Dish;
 
-namespace Shop.Validators;
+namespace Shop.Validators.Dish;
 
 public class DeleteDishRequestValidator : AbstractValidator<DeleteDishRequest>
 {

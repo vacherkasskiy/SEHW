@@ -47,7 +47,7 @@ public class DishController : ControllerBase
     [Route("/dishes/create")]
     public async Task<IActionResult> CreateDish([FromForm]CreateDishRequest request)
     {
-        if (await CheckAccess(request.Signature))
+        if (!await CheckAccess(request.Signature))
         {
             return StatusCode(StatusCodes.Status400BadRequest, "Access denied (may be you're not manager)");
         }
@@ -72,7 +72,7 @@ public class DishController : ControllerBase
     [Route("/dishes/delete")]
     public async Task<IActionResult> DeleteDish([FromForm]DeleteDishRequest request)
     {
-        if (await CheckAccess(request.Signature))
+        if (!await CheckAccess(request.Signature))
         {
             return StatusCode(StatusCodes.Status400BadRequest, "Access denied (may be you're not manager)");
         }
@@ -92,7 +92,7 @@ public class DishController : ControllerBase
     [Route("/dishes/edit")]
     public async Task<IActionResult> EditDish([FromForm]EditDishRequest request)
     {
-        if (await CheckAccess(request.Signature))
+        if (!await CheckAccess(request.Signature))
         {
             return StatusCode(StatusCodes.Status400BadRequest, "Access denied (may be you're not manager)");
         }
@@ -103,11 +103,11 @@ public class DishController : ControllerBase
             return StatusCode(StatusCodes.Status400BadRequest, "Wrong dish id");
         }
 
-        dish.Name = request.Name;
-        dish.Description = request.Description;
-        dish.Price = request.Price;
-        dish.Quantity = request.Quantity;
-        dish.IsAvailable = request.Quantity > 0;
+        dish.Name = request.Name.Length == 0 ? dish.Name : request.Name;
+        dish.Description = request.Description ?? dish.Description;
+        dish.Price = request.Price <= 0 ? dish.Price : request.Price;
+        dish.Quantity = request.Quantity <= 0 ? dish.Quantity : request.Quantity;
+        dish.IsAvailable = dish.Quantity > 0;
         dish.UpdatedAt = DateTime.UtcNow;
 
         _db.Dishes.Update(dish);

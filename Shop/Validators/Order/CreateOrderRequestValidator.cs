@@ -1,7 +1,8 @@
 ﻿using FluentValidation;
 using Shop.Requests;
+using Shop.Validators.Dish;
 
-namespace Shop.Validators;
+namespace Shop.Validators.Order;
 
 public class CreateOrderRequestValidator : AbstractValidator<CreateOrderRequest>
 {

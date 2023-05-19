@@ -1,8 +1,7 @@
 ﻿using FluentValidation;
 using Shop.Models;
-using Shop.Requests;
 
-namespace Shop.Validators;
+namespace Shop.Validators.Dish;
 
 public class DishModelValidator : AbstractValidator<DishModel>
 {

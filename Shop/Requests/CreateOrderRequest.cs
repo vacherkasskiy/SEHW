@@ -2,4 +2,4 @@
 
 namespace Shop.Requests;
 
-public record CreateOrderRequest(string Signature, DishModel[] Dishes);
+public record CreateOrderRequest(string Signature, DishModel[] Dishes, string SpecialRequests);

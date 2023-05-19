@@ -41,12 +41,18 @@ public class ShopController : ControllerBase
         {
             return StatusCode(StatusCodes.Status400BadRequest, "Wrong dish id(-s)");
         }
+        
+        if (request.Dishes.Any(x => _db.Dishes.Find(x.DishId)!.Quantity < x.Quantity))
+        {
+            return StatusCode(StatusCodes.Status400BadRequest, "Wrong quantity provided");
+        }
 
         var userId = (await _db.Sessions.FirstAsync(x => x.SessionToken == request.Signature)).UserId;
         var order = new Order
         {
             UserId = userId,
             Status = "Not ready",
+            SpecialRequests = request.SpecialRequests,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
@@ -57,6 +63,8 @@ public class ShopController : ControllerBase
         
         foreach (var dish in request.Dishes)
         {
+            (await _db.Dishes.FindAsync(dish.DishId))!.Quantity -= dish.Quantity;
+            
             var orderDish = new OrderDish
             {
                 OrderId = orderId,
@@ -64,7 +72,7 @@ public class ShopController : ControllerBase
                 Quantity = dish.Quantity,
                 Price = (await _db.Dishes.FindAsync(dish.DishId))!.Price
             };
-
+            
             await _db.OrderDishes.AddAsync(orderDish);
         }
 

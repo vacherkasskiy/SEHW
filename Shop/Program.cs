@@ -19,7 +19,7 @@ builder.Services.AddFluentValidation(conf =>
     conf.AutomaticValidationEnabled = true;
 });
 
-//builder.Services.AddSingleton<ChangeOrderStatusHostedService>();
+builder.Services.AddHostedService<ChangeOrderStatusHostedService>();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 

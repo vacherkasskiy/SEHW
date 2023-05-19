@@ -2,44 +2,64 @@
 
 namespace Shop.HostedServices;
 
-public sealed class ChangeOrderStatusHostedService : BackgroundService
+public sealed class ChangeOrderStatusHostedService : IHostedService, IDisposable
 {
-    private readonly ApplicationDbContext _db;
+    private readonly IServiceScopeFactory _serviceScopeFactory;
+    private Timer? _timer;
 
-    public ChangeOrderStatusHostedService(
-        ApplicationDbContext db)
+    public ChangeOrderStatusHostedService(IServiceScopeFactory serviceScopeFactory)
     {
-        _db = db;
+        _serviceScopeFactory = serviceScopeFactory;
     }
 
-    protected override async Task ExecuteAsync(CancellationToken token)
+    public Task StartAsync(CancellationToken stoppingToken)
     {
-        while (!token.IsCancellationRequested)
+        _timer = new Timer(DoWork,
+            null,
+            TimeSpan.Zero,
+            TimeSpan.FromMinutes(1));
+
+        return Task.CompletedTask;
+    }
+    
+    private void DoWork(object? state)
+    {
+        using var scope = _serviceScopeFactory.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            
+        var pendingDishes = db
+            .Orders
+            .Where(x => x.Status == "Pending" && x.UpdatedAt.AddMinutes(1) <= DateTime.UtcNow)
+            .ToArray();
+
+        foreach (var pendingDish in pendingDishes)
         {
-            var pendingDishes = _db
-                .Orders
-                .Where(x => x.Status == "Pending" && x.UpdatedAt <= DateTime.UtcNow.AddMinutes(1))
-                .ToArray();
-
-            foreach (var pendingDish in pendingDishes)
-            {
-                pendingDish.Status = "Being prepared";
-                pendingDish.UpdatedAt = DateTime.UtcNow;
-            }
-
-            var preparedDishes = _db
-                .Orders
-                .Where(x => x.Status == "Being prepared" && x.UpdatedAt <= DateTime.UtcNow.AddMinutes(2))
-                .ToArray();
-
-            foreach (var preparedDish in preparedDishes)
-            {
-                preparedDish.Status = "Ready";
-                preparedDish.UpdatedAt = DateTime.UtcNow;
-            }
-
-            await _db.SaveChangesAsync(token);
-            await Task.Delay(TimeSpan.FromSeconds(15), token);
+            pendingDish.Status = "Being prepared";
+            pendingDish.UpdatedAt = DateTime.UtcNow;
         }
+
+        var preparedDishes = db
+            .Orders
+            .Where(x => x.Status == "Being prepared" && x.UpdatedAt.AddMinutes(2) <= DateTime.UtcNow)
+            .ToArray();
+
+        foreach (var preparedDish in preparedDishes)
+        {
+            preparedDish.Status = "Ready";
+            preparedDish.UpdatedAt = DateTime.UtcNow;
+        }
+
+        db.SaveChanges();
+    }
+    
+    public Task StopAsync(CancellationToken stoppingToken)
+    {
+        _timer?.Change(Timeout.Infinite, Timeout.Infinite);
+        return Task.CompletedTask;
+    }
+
+    public void Dispose()
+    {
+        _timer?.Dispose();
     }
 }

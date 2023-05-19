@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Data.Data;
 using Data.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -17,16 +18,21 @@ public class ShopController : ControllerBase
         _db = db;
     }
 
-    [HttpGet]
-    [Route("/shop/get_dishes")]
-    public IEnumerable<Dish> GetDishes()
-    {
-        var dishes = _db.Dishes.ToArray();
-        return dishes;
-    }
-
     [HttpPost]
-    [Route("/shop/create_order")]
+    [Route("/order/get_info")]
+    public async Task<IActionResult> GetInfo([FromForm]GetInfoRequest request)
+    {
+        var order = await _db.Orders.FindAsync(request.OrderId);
+        if (order == null)
+        {
+            return StatusCode(StatusCodes.Status400BadRequest, "Wrong order id");
+        }
+        
+        return StatusCode(StatusCodes.Status200OK, JsonSerializer.Serialize(order));
+    }
+    
+    [HttpPost]
+    [Route("/order/create_order")]
     public async Task<IActionResult> CreateOrder(CreateOrderRequest request)
     {
         if (await _db
@@ -51,7 +57,7 @@ public class ShopController : ControllerBase
         var order = new Order
         {
             UserId = userId,
-            Status = "Not ready",
+            Status = "Pending",
             SpecialRequests = request.SpecialRequests,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
@@ -63,7 +69,12 @@ public class ShopController : ControllerBase
         
         foreach (var dish in request.Dishes)
         {
-            (await _db.Dishes.FindAsync(dish.DishId))!.Quantity -= dish.Quantity;
+            var foundDish = (await _db.Dishes.FindAsync(dish.DishId))!;
+            foundDish.Quantity -= dish.Quantity;
+            if (foundDish.Quantity == 0)
+            {
+                foundDish.IsAvailable = false;
+            }
             
             var orderDish = new OrderDish
             {

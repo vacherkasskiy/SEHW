@@ -1,5 +1,4 @@
 ﻿using Data.Data;
-using Microsoft.EntityFrameworkCore;
 
 namespace Shop.HostedServices;
 
@@ -27,7 +26,7 @@ public sealed class ChangeOrderStatusHostedService : BackgroundService
                 pendingDish.Status = "Being prepared";
                 pendingDish.UpdatedAt = DateTime.UtcNow;
             }
-        
+
             var preparedDishes = _db
                 .Orders
                 .Where(x => x.Status == "Being prepared" && x.UpdatedAt <= DateTime.UtcNow.AddMinutes(2))

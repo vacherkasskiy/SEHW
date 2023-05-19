@@ -1,5 +1,4 @@
 ﻿using Auth.Requests.Account;
-using Data;
 using FluentValidation;
 
 namespace Auth.Validators;

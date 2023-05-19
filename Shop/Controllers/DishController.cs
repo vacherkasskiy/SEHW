@@ -25,16 +25,13 @@ public class DishController : ControllerBase
             .Sessions
             .FirstOrDefaultAsync(x => x.SessionToken == signature);
 
-        if (session == null)
-        {
-            return false;
-        }
+        if (session == null) return false;
 
         var user = await _db.Users.FindAsync(session.UserId);
-        
+
         return user!.Role == RoleTypes.Roles[2];
     }
-    
+
     [HttpGet]
     [Route("/dishes/get_dishes")]
     public IEnumerable<Dish> GetDishes()
@@ -45,13 +42,11 @@ public class DishController : ControllerBase
 
     [HttpPost]
     [Route("/dishes/create")]
-    public async Task<IActionResult> CreateDish([FromForm]CreateDishRequest request)
+    public async Task<IActionResult> CreateDish([FromForm] CreateDishRequest request)
     {
         if (!await CheckAccess(request.Signature))
-        {
             return StatusCode(StatusCodes.Status400BadRequest, "Access denied (may be you're not manager)");
-        }
-        
+
         var dish = new Dish
         {
             Name = request.Name,
@@ -70,18 +65,13 @@ public class DishController : ControllerBase
 
     [HttpPost]
     [Route("/dishes/delete")]
-    public async Task<IActionResult> DeleteDish([FromForm]DeleteDishRequest request)
+    public async Task<IActionResult> DeleteDish([FromForm] DeleteDishRequest request)
     {
         if (!await CheckAccess(request.Signature))
-        {
             return StatusCode(StatusCodes.Status400BadRequest, "Access denied (may be you're not manager)");
-        }
 
         var dish = await _db.Dishes.FindAsync(request.DishId);
-        if (dish == null)
-        {
-            return StatusCode(StatusCodes.Status400BadRequest, "Wrong dish id");
-        }
+        if (dish == null) return StatusCode(StatusCodes.Status400BadRequest, "Wrong dish id");
 
         _db.Dishes.Remove(dish);
         await _db.SaveChangesAsync();
@@ -90,18 +80,13 @@ public class DishController : ControllerBase
 
     [HttpPatch]
     [Route("/dishes/edit")]
-    public async Task<IActionResult> EditDish([FromForm]EditDishRequest request)
+    public async Task<IActionResult> EditDish([FromForm] EditDishRequest request)
     {
         if (!await CheckAccess(request.Signature))
-        {
             return StatusCode(StatusCodes.Status400BadRequest, "Access denied (may be you're not manager)");
-        }
 
         var dish = await _db.Dishes.FindAsync(request.DishId);
-        if (dish == null)
-        {
-            return StatusCode(StatusCodes.Status400BadRequest, "Wrong dish id");
-        }
+        if (dish == null) return StatusCode(StatusCodes.Status400BadRequest, "Wrong dish id");
 
         dish.Name = request.Name.Length == 0 ? dish.Name : request.Name;
         dish.Description = request.Description ?? dish.Description;

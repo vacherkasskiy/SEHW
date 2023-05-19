@@ -17,12 +17,12 @@ namespace Auth.Controllers;
 public class AccountController : ControllerBase
 {
     private readonly ApplicationDbContext _db;
-    
+
     public AccountController(ApplicationDbContext db)
     {
         _db = db;
     }
-    
+
     private static string Generate(User user)
     {
         var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(JwtConfig.Key));
@@ -31,7 +31,7 @@ public class AccountController : ControllerBase
         var token = new JwtSecurityToken(
             JwtConfig.Issuer,
             JwtConfig.Audience,
-            claims: new[] { new Claim("userId", user.Id.ToString()) },
+            new[] {new Claim("userId", user.Id.ToString())},
             signingCredentials: credentials);
 
         return new JwtSecurityTokenHandler().WriteToken(token);
@@ -39,17 +39,13 @@ public class AccountController : ControllerBase
 
     [HttpPost]
     [Route("/account/register")]
-    public async Task<IActionResult> Register([FromForm]RegisterRequest request)
+    public async Task<IActionResult> Register([FromForm] RegisterRequest request)
     {
         if (await _db.Users.FirstOrDefaultAsync(x => x.Email == request.Email) != null)
-        {
             return StatusCode(StatusCodes.Status400BadRequest, "User with such email already exists");
-        }
 
         if (!RoleTypes.Roles.Contains(request.Role.ToLower()))
-        {
             return StatusCode(StatusCodes.Status400BadRequest, "Role should be in list of {customer, chef, manager}");
-        }
 
         var user = new User
         {
@@ -66,26 +62,21 @@ public class AccountController : ControllerBase
 
         return StatusCode(StatusCodes.Status200OK, "User registered successfully");
     }
-    
+
     [HttpPost]
     [Route("/account/login")]
-    public async Task<IActionResult> Login([FromForm]LoginRequest request)
+    public async Task<IActionResult> Login([FromForm] LoginRequest request)
     {
         var user = _db.Users.FirstOrDefault(x => x.Email == request.Email);
 
-        if (user == null)
-        {
-            return StatusCode(StatusCodes.Status400BadRequest, "User with such email does not exist");
-        }
-        
+        if (user == null) return StatusCode(StatusCodes.Status400BadRequest, "User with such email does not exist");
+
         var passwordHasher = new PasswordHasher<User>();
         var result = passwordHasher.VerifyHashedPassword(user, user.PasswordHash, request.Password);
 
         if (result != PasswordVerificationResult.Success)
-        {
             return StatusCode(StatusCodes.Status400BadRequest, "Wrong password");
-        }
-        
+
         var token = Generate(user);
         var signature = token.Split('.')[2];
 
@@ -97,7 +88,7 @@ public class AccountController : ControllerBase
                 SessionToken = signature,
                 ExpiresAt = DateTime.UtcNow.AddMinutes(JwtConfig.SessionDuration)
             };
-        
+
             await _db.Sessions.AddAsync(session);
         }
         else
@@ -106,9 +97,9 @@ public class AccountController : ControllerBase
             session.ExpiresAt = DateTime.UtcNow.AddMinutes(JwtConfig.SessionDuration);
             _db.Sessions.Update(session);
         }
-        
+
         await _db.SaveChangesAsync();
-        
+
         return StatusCode(StatusCodes.Status200OK, $"You authenticated successfully\nYour signature: {signature}");
     }
 }

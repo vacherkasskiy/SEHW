@@ -12,6 +12,9 @@ namespace Shop.Controllers;
 [Route("[controller]")]
 public class DishController : ControllerBase
 {
+    /// <summary>
+    /// Контекст базы данных
+    /// </summary>
     private readonly ApplicationDbContext _db;
 
     public DishController(ApplicationDbContext db)
@@ -19,11 +22,16 @@ public class DishController : ControllerBase
         _db = db;
     }
 
+    /// <summary>
+    /// Метод, проверяющий является ли пользователь менеджером или нет
+    /// </summary>
+    /// <param name="signature">Подпись jwt токена</param>
+    /// <returns>true, если пользователь является менеджером, иначе - false</returns>
     private async Task<bool> CheckAccess(string signature)
     {
         var session = await _db
             .Sessions
-            .FirstOrDefaultAsync(x => x.SessionToken == signature);
+            .FirstOrDefaultAsync(x => x.SessionToken == signature && x.ExpiresAt > DateTime.UtcNow);
 
         if (session == null) return false;
 
@@ -32,6 +40,10 @@ public class DishController : ControllerBase
         return user!.Role == RoleTypes.Roles[2];
     }
 
+    /// <summary>
+    /// Метод, возвращающий список всех доступных блюд в ресторане
+    /// </summary>
+    /// <returns>Все доступные блюда</returns>
     [HttpGet]
     [Route("/dishes/get_dishes")]
     public IEnumerable<Dish> GetDishes()
@@ -40,6 +52,11 @@ public class DishController : ControllerBase
         return dishes;
     }
 
+    /// <summary>
+    /// Метод для создания нового блюда
+    /// </summary>
+    /// <param name="request">Модель нового блюда</param>
+    /// <returns>HTTP код (успех\провал)</returns>
     [HttpPost]
     [Route("/dishes/create")]
     public async Task<IActionResult> CreateDish([FromForm] CreateDishRequest request)
@@ -63,6 +80,11 @@ public class DishController : ControllerBase
         return StatusCode(StatusCodes.Status200OK, "Dish successfully created");
     }
 
+    /// <summary>
+    /// Метод для удаления блюда из меню
+    /// </summary>
+    /// <param name="request">Модель для удаления блюда</param>
+    /// <returns>HTTP код (успех\провал)</returns>
     [HttpPost]
     [Route("/dishes/delete")]
     public async Task<IActionResult> DeleteDish([FromForm] DeleteDishRequest request)
@@ -78,6 +100,11 @@ public class DishController : ControllerBase
         return StatusCode(StatusCodes.Status200OK, "Dish successfully deleted");
     }
 
+    /// <summary>
+    /// Метод для корректирования\изменения уже существующего блюда
+    /// </summary>
+    /// <param name="request">Модель для изменения блюда</param>
+    /// <returns>HTTP код (успех\провал)</returns>
     [HttpPatch]
     [Route("/dishes/edit")]
     public async Task<IActionResult> EditDish([FromForm] EditDishRequest request)
@@ -88,6 +115,8 @@ public class DishController : ControllerBase
         var dish = await _db.Dishes.FindAsync(request.DishId);
         if (dish == null) return StatusCode(StatusCodes.Status400BadRequest, "Wrong dish id");
 
+        // здесь блюду будет присвоено старое значение, если новое не введено
+        // или введено некорректно.
         dish.Name = request.Name.Length == 0 ? dish.Name : request.Name;
         dish.Description = request.Description ?? dish.Description;
         dish.Price = request.Price <= 0 ? dish.Price : request.Price;

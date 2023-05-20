@@ -5,6 +5,7 @@ namespace Shop.Validators.Dish;
 
 public class DishModelValidator : AbstractValidator<DishModel>
 {
+    // https://docs.fluentvalidation.net/en/latest/
     public DishModelValidator()
     {
         RuleFor(x => x.DishId).NotNull();

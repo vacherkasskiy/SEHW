@@ -12,10 +12,16 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace Auth.Controllers;
 
+/// <summary>
+/// Класс контроллера авторизации и регистрации
+/// </summary>
 [ApiController]
 [Route("[controller]")]
 public class AccountController : ControllerBase
 {
+    /// <summary>
+    /// Контекст базы данных
+    /// </summary>
     private readonly ApplicationDbContext _db;
 
     public AccountController(ApplicationDbContext db)
@@ -23,6 +29,11 @@ public class AccountController : ControllerBase
         _db = db;
     }
 
+    /// <summary>
+    /// Генератор jwt токена по модели пользователя
+    /// </summary>
+    /// <param name="user">Модель пользователя</param>
+    /// <returns>jwt токен</returns>
     private static string Generate(User user)
     {
         var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(JwtConfig.Key));
@@ -37,6 +48,11 @@ public class AccountController : ControllerBase
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
 
+    /// <summary>
+    /// Метод контроллера для регистрации
+    /// </summary>
+    /// <param name="request">Модель для регистрации</param>
+    /// <returns>HTTP код (успех\провал)</returns>
     [HttpPost]
     [Route("/account/register")]
     public async Task<IActionResult> Register([FromForm] RegisterRequest request)
@@ -63,6 +79,11 @@ public class AccountController : ControllerBase
         return StatusCode(StatusCodes.Status200OK, "User registered successfully");
     }
 
+    /// <summary>
+    /// Метод контроллера для авторизации
+    /// </summary>
+    /// <param name="request">Модель для авторизации</param>
+    /// <returns>HTTP код (успех и jwt ключ\провал)</returns>
     [HttpPost]
     [Route("/account/login")]
     public async Task<IActionResult> Login([FromForm] LoginRequest request)
@@ -82,6 +103,7 @@ public class AccountController : ControllerBase
 
         if (_db.Sessions.FirstOrDefault(x => x.SessionToken == signature) == null)
         {
+            // если пользователь авторизуется впервые - создаёт новую сессию
             var session = new Session
             {
                 UserId = user.Id,
@@ -93,6 +115,7 @@ public class AccountController : ControllerBase
         }
         else
         {
+            // если сессия пользователя уже существует, то просто продливает её
             var session = _db.Sessions.FirstOrDefault(x => x.SessionToken == signature)!;
             session.ExpiresAt = DateTime.UtcNow.AddMinutes(JwtConfig.SessionDuration);
             _db.Sessions.Update(session);

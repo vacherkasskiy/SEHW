@@ -1,5 +1,8 @@
 ﻿namespace Data;
 
+/// <summary>
+/// Статический класс, хранящий информацию о настройках jwt токена
+/// </summary>
 public static class JwtConfig
 {
     public static readonly string Key = "gayaubxcfuspyzziaxkiwhaaftwvgosxtepppelgqmfdigmwxt";

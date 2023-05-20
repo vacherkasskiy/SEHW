@@ -5,6 +5,7 @@ namespace Auth.Validators;
 
 public class LoginRequestValidator : AbstractValidator<LoginRequest>
 {
+    // https://docs.fluentvalidation.net/en/latest/
     public LoginRequestValidator()
     {
         RuleFor(x => x.Email).NotNull();

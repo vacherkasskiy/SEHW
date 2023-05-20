@@ -1,11 +1,13 @@
 ﻿using FluentValidation;
 using Shop.Requests;
+using Shop.Requests.Order;
 using Shop.Validators.Dish;
 
 namespace Shop.Validators.Order;
 
 public class CreateOrderRequestValidator : AbstractValidator<CreateOrderRequest>
 {
+    // https://docs.fluentvalidation.net/en/latest/
     public CreateOrderRequestValidator()
     {
         RuleFor(x => x.Signature).NotNull();

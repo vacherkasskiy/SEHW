@@ -4,6 +4,7 @@ using Data.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Shop.Requests;
+using Shop.Requests.Order;
 
 namespace Shop.Controllers;
 
@@ -11,6 +12,9 @@ namespace Shop.Controllers;
 [Route("[controller]")]
 public class ShopController : ControllerBase
 {
+    /// <summary>
+    /// Контекст базы данных
+    /// </summary>
     private readonly ApplicationDbContext _db;
 
     public ShopController(ApplicationDbContext db)
@@ -18,6 +22,11 @@ public class ShopController : ControllerBase
         _db = db;
     }
 
+    /// <summary>
+    /// Получает информацию о заказе по уникальному ключу
+    /// </summary>
+    /// <param name="request">Уникальный ключ</param>
+    /// <returns>Информацию о заказе</returns>
     [HttpPost]
     [Route("/order/get_info")]
     public async Task<IActionResult> GetInfo([FromForm] GetInfoRequest request)
@@ -28,6 +37,11 @@ public class ShopController : ControllerBase
         return StatusCode(StatusCodes.Status200OK, JsonSerializer.Serialize(order));
     }
 
+    /// <summary>
+    /// Метод для создания нового заказа
+    /// </summary>
+    /// <param name="request">Модель для создания нового заказа</param>
+    /// <returns>HTTP код (успех\провал)</returns>
     [HttpPost]
     [Route("/order/create_order")]
     public async Task<IActionResult> CreateOrder(CreateOrderRequest request)
@@ -54,15 +68,17 @@ public class ShopController : ControllerBase
             UpdatedAt = DateTime.UtcNow
         };
 
+        // добавляем и сохраняем заказ
         await _db.Orders.AddAsync(order);
         await _db.SaveChangesAsync();
         var orderId = order.Id;
 
+        // добавляем все заказанные блюда
         foreach (var dish in request.Dishes)
         {
             var foundDish = (await _db.Dishes.FindAsync(dish.DishId))!;
-            foundDish.Quantity -= dish.Quantity;
-            if (foundDish.Quantity == 0) foundDish.IsAvailable = false;
+            foundDish.Quantity -= dish.Quantity; // уменьшаем кол-во блюд
+            if (foundDish.Quantity == 0) foundDish.IsAvailable = false; // при необходимости меняем доступность
 
             var orderDish = new OrderDish
             {
@@ -75,6 +91,7 @@ public class ShopController : ControllerBase
             await _db.OrderDishes.AddAsync(orderDish);
         }
 
+        // сохраняем изменения ещё раз
         await _db.SaveChangesAsync();
 
         return StatusCode(StatusCodes.Status200OK, "Order successfully created");

@@ -5,6 +5,7 @@ namespace Auth.Validators;
 
 public class RegisterRequestValidator : AbstractValidator<RegisterRequest>
 {
+    // https://docs.fluentvalidation.net/en/latest/
     public RegisterRequestValidator()
     {
         RuleFor(x => x.Username).NotNull();

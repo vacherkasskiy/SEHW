@@ -5,6 +5,7 @@ namespace Shop.Validators.Dish;
 
 public class DeleteDishRequestValidator : AbstractValidator<DeleteDishRequest>
 {
+    // https://docs.fluentvalidation.net/en/latest/
     public DeleteDishRequestValidator()
     {
         RuleFor(x => x.Signature).NotNull();

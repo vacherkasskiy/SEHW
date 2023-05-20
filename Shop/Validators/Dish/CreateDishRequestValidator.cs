@@ -1,10 +1,12 @@
 ﻿using FluentValidation;
 using Shop.Requests;
+using Shop.Requests.Dish;
 
 namespace Shop.Validators.Dish;
 
 public class CreateDishRequestValidator : AbstractValidator<CreateDishRequest>
 {
+    // https://docs.fluentvalidation.net/en/latest/
     public CreateDishRequestValidator()
     {
         RuleFor(x => x.Signature).NotNull();

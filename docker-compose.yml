@@ -1,4 +1,4 @@
-version: "1"
+version: "3"
 services:
   sehw-local:
     image: postgres
@@ -10,3 +10,23 @@ services:
       POSTGRES_PASSWORD: "123456"
     ports:
       - 5432:5432
+
+  auth:
+    build:
+      context: ./Auth
+      dockerfile: Dockerfile
+    depends_on:
+      - sehw-local
+    environment:
+      - ConnectionStrings:DefaultConnection=Server=sehw-local;Port=5432;Database=sehw;User Id=postgres;Password=123456
+    command: bash -c "dotnet run"
+
+  shop:
+    build:
+      context: ./Shop
+      dockerfile: Dockerfile
+    depends_on:
+      - sehw-local
+    environment:
+      - ConnectionStrings:DefaultConnection=Server=sehw-local;Port=5432;Database=sehw;User Id=postgres;Password=123456
+    command: bash -c "dotnet ef database update && dotnet run"
